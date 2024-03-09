@@ -4,6 +4,7 @@ import {
   removeContact,
   addContact,
   updateContactById,
+  updateStatusContact,
 } from "../services/contactsServices.js";
 
 import HttpError from "../helpers/HttpError.js";
@@ -63,4 +64,18 @@ export const updateContact = ctrlWrapper(async (req, res) => {
   }
 
   res.json(result);
+});
+
+export const updateStatusContactById = ctrlWrapper(async (req, res) => {
+  const { error } = updateContactSchema.validate(req.body);
+  if (error) {
+    throw HttpError(400, error.message);
+  }
+  const { id } = req.params;
+  const result = await updateStatusContact(id, req.body);
+  if (!result) {
+    throw HttpError(404, `Contact with id:${id} not found`);
+  }
+
+  res.status(200).json(result);
 });
