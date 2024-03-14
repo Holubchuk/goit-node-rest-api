@@ -19,6 +19,7 @@ export const signup = ctrlWrapper(async(req, res) => {
 
     res.status(201).json({
         email: newUser.email,
+        subscription: newUser.subscription,
     })
 })
 
@@ -42,6 +43,6 @@ export const signin = ctrlWrapper(async(req, res) => {
     const token = jwt.sign(payload, JWT_SECRET, {expiresIn: "23h"});
 
     res.json({
-        token,
+        token,      
     })
 })
