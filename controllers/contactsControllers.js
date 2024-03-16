@@ -18,10 +18,15 @@ import { ctrlWrapper } from "../decorators/ctrlWrapper.js";
 
 export const getAllContacts = ctrlWrapper(async (req, res) => {
   const {_id: owner} = req.user;
-  const {page = 1, limit = 20} = req.query;
+  const {page = 1, limit = 20, favorite} = req.query;
   const skip = (page - 1) * limit;
+  const filter = { owner };
 
-  const result = await listContacts({owner}, {skip, limit});
+  if (favorite !== undefined) {
+    filter.favorite = favorite === 'true';
+  }
+
+  const result = await listContacts(filter, {skip, limit});
 
   res.json(result);
 });
