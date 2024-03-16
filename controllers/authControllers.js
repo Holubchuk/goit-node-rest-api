@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import {findUser, hashPassword, validatePassword} from "../services/authServices.js";
+import {findUser, hashPassword, updateUser, validatePassword} from "../services/authServices.js";
 
 import HttpError from "../helpers/HttpError.js";
 
@@ -41,8 +41,27 @@ export const signin = ctrlWrapper(async(req, res) => {
     }
 
     const token = jwt.sign(payload, JWT_SECRET, {expiresIn: "23h"});
+    await updateUser({_id: id}, {token});
 
     res.json({
         token,      
+    })
+})
+
+export const getCurrent = ctrlWrapper(async(req, res)=> {
+    const {email, subscription} = req.user;
+
+    res.json({
+        email,
+        subscription,
+    })
+})
+
+export const signout = ctrlWrapper(async(req, res)=> {
+    const {_id} = req.user;
+    await updateUser({_id}, {token: ""});
+
+    res.json({
+        message: "Signout success"
     })
 })
