@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import gravatar from 'gravatar';
 
 import {findUser, hashPassword, updateUser, validatePassword} from "../services/authServices.js";
 

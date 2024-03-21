@@ -1,3 +1,6 @@
+import fs from "fs/promises";
+import path from "path";
+
 import {
   listContacts,
   addContact,
@@ -15,6 +18,8 @@ import {
 } from "../schemas/contactsSchemas.js";
 
 import { ctrlWrapper } from "../decorators/ctrlWrapper.js";
+
+const avatarsPath = path.resolve("public", "avatars");
 
 export const getAllContacts = ctrlWrapper(async (req, res) => {
   const {_id: owner} = req.user;
@@ -56,10 +61,14 @@ export const deleteContact = ctrlWrapper(async (req, res) => {
 export const createContact = ctrlWrapper(async (req, res) => {
   const { error } = createContactSchema.validate(req.body);
   const {_id: owner} = req.user;
+  const {path: oldPath, filename} = req.file;
+  const newPath = path.join(avatarsPath, filename);
+  await fs.rename(oldPath, newPath);
+  const avatarURL = path.join("avatars", filename);
   if (error) {
     throw HttpError(400, error.message);
   }
-  const result = await addContact({...req.body, owner});
+  const result = await addContact({...req.body, avatarURL, owner});
 
   res.status(201).json(result);
 });
