@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 import gravatar from 'gravatar';
 
+import fs from "fs/promises";
+import path from "path";
+
 import {findUser, hashPassword, updateUser, validatePassword} from "../services/authServices.js";
 
 import HttpError from "../helpers/HttpError.js";
@@ -9,18 +12,21 @@ import {ctrlWrapper} from "../decorators/ctrlWrapper.js";
 
 const {JWT_SECRET} = process.env;
 
+const avatarsPath = path.resolve("public", "avatars");
+
 export const signup = ctrlWrapper(async(req, res) => {
     const {email} = req.body;
     const user = await findUser({email});
     if(user) {
         throw HttpError(409, "Email in use");
     }
-    
-    const newUser = await hashPassword(req.body);
+    const avatarURL = gravatar.url(email, { s: '250', r: 'pg', d: 'identicon' });
+    const newUser = await hashPassword({ ...req.body, avatarURL });
 
     res.status(201).json({
         email: newUser.email,
         subscription: newUser.subscription,
+        avatarURL: newUser.avatarURL,
     })
 })
 
@@ -66,3 +72,21 @@ export const signout = ctrlWrapper(async(req, res)=> {
         message: "Signout success"
     })
 })
+
+export const updateUserAvatar = ctrlWrapper(async (req, res) => {
+
+    res.json({
+        message: "Signout success"
+    })
+    const {path: oldPath, filename} = req.file;
+    const newPath = path.join(avatarsPath, filename);
+    await fs.rename(oldPath, newPath);
+    const newAvatar = path.join("avatars", filename);
+    
+    if (error) {
+      throw HttpError(400, error.message);
+    }
+    const result = await updateUser({...req.body, avatarURL: newAvatar});
+  
+    res.status(201).json(result);
+  })
