@@ -83,20 +83,24 @@ export const updateUserAvatar = ctrlWrapper(async (req, res) => {
   const { _id, email } = req.user;
 
   const user = await findUser({ email });
-  console.log(email);
+
   if (!user) {
     throw HttpError(401, "Not authorized");
   }
-
+  if (!req.file) {
+    throw HttpError(400, "Please, attach a file");
+  }
+  
   const { path: oldPath, filename } = req.file;
   const newPath = path.join(avatarsPath, filename);
 
   const image = await Jimp.read(oldPath);
-  image.resize(250, 250).writeAsync(newPath);
+  image.resize(250, 250).writeAsync(oldPath);
+  await fs.rename(oldPath, newPath);
 
   const newAvatar = path.join("avatars", filename);
 
   await updateUser({ _id }, { avatarURL: newAvatar });
 
-  res.status(200).json(`avatarURL: ${newAvatar}`);
+  res.status(200).json({"avatarURL": newAvatar});
 });
